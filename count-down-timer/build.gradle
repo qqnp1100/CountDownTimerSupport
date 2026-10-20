@@ -1,99 +1,91 @@
-apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
 
 version = rootProject.ext.android.versionName
-group = rootProject.ext.jcenter.groupId
+group = rootProject.ext.library.groupId
 
 android {
-    compileSdkVersion rootProject.ext.android.compileSdkVersion
-    buildToolsVersion rootProject.ext.android.buildToolsVersion
+    namespace = 'in.xiandan.countdowntimer'
+    compileSdk = rootProject.ext.android.compileSdkVersion
+    enableKotlin = false
 
     defaultConfig {
-        minSdkVersion rootProject.ext.android.minSdkVersion
-        targetSdkVersion rootProject.ext.android.targetSdkVersion
-        versionCode rootProject.ext.android.targetSdkVersion
-        versionName rootProject.ext.android.versionName
-
+        minSdk = rootProject.ext.android.minSdkVersion
+        aarMetadata {
+            // Keep the Java-only library consumable with Android API 14 and above.
+            minCompileSdk = rootProject.ext.android.minSdkVersion
+        }
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
         }
     }
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.15.1'
 }
 
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging 'aar'
-                name rootProject.ext.jcenter.description
-                url rootProject.ext.jcenter.siteUrl
+tasks.withType(Javadoc).configureEach {
+    options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        author = true
+        version = true
+    }
+}
+
+publishing {
+    publications {
+        register('release', MavenPublication) {
+            artifactId = rootProject.ext.library.artifactId
+            pom {
+                name = rootProject.ext.library.name
+                description = rootProject.ext.library.description
+                url = rootProject.ext.library.siteUrl
                 licenses {
                     license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
                 developers {
                     developer {
-                        id rootProject.ext.jcenter.authorId
-                        name rootProject.ext.jcenter.authorName
-                        email rootProject.ext.jcenter.authorEmail
+                        id = rootProject.ext.library.authorId
+                        name = rootProject.ext.library.authorName
+                        email = rootProject.ext.library.authorEmail
                     }
                 }
                 scm {
-                    connection rootProject.ext.jcenter.gitUrl
-                    developerConnection rootProject.ext.jcenter.gitUrl
-                    url rootProject.ext.jcenter.siteUrl
+                    connection = rootProject.ext.library.gitUrl
+                    developerConnection = rootProject.ext.library.gitUrl
+                    url = rootProject.ext.library.siteUrl
                 }
             }
         }
     }
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-javadoc {
-    options {
-        encoding "UTF-8"
-        charSet 'UTF-8'
-        author true
-        version true
-        links "http://docs.oracle.com/javase/8/docs/api"
-    }
-}
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        repo = "maven"
-        name = rootProject.ext.jcenter.name
-        websiteUrl = rootProject.ext.jcenter.siteUrl
-        vcsUrl = rootProject.ext.jcenter.gitUrl
-        licenses = ["Apache-2.0"]
-        publish = true
+afterEvaluate {
+    publishing.publications.named('release', MavenPublication) {
+        from components.release
     }
 }

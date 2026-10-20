@@ -4,18 +4,18 @@ ext {
                     versionCode      : 4,
                     versionName      : "1.0.3",
 
-                    compileSdkVersion: 28,
-                    buildToolsVersion: "28.0.3",
+                    compileSdkVersion: 36,
                     minSdkVersion    : 14,
-                    targetSdkVersion : 28,
+                    targetSdkVersion : 36,
                     supportVersion   : "28.0.0",
             ]
 
-    jcenter =
+    library =
             [
                     //项目名称
-                    name       : "CountDownTimerSupport2",
+                    name       : "CountDownTimerSupport",
                     groupId    : "in.xiandan",
+                    artifactId : "count-down-timer",
                     //项目地址
                     siteUrl    : "https://github.com/xiandanin/CountDownTimerSupport",
                     //项目git地址
